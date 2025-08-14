@@ -182,54 +182,56 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
               <Card key={property.id} className="hover:shadow-lg transition-shadow">
                 <Collapsible open={isExpanded} onOpenChange={() => togglePropertyExpansion(property.id)}>
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                    <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors p-4">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div className="flex items-start space-x-3 min-w-0 flex-1">
                           {isExpanded ? (
-                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                            <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                           ) : (
-                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                            <ChevronRight className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                           )}
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <CardTitle className="text-lg font-semibold text-gray-900">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 gap-2">
+                              <CardTitle className="text-lg font-semibold text-gray-900 truncate">
                                 {property.property_name}
                               </CardTitle>
-                              <Badge variant="secondary">{property.property_type}</Badge>
+                              <Badge variant="secondary" className="w-fit flex-shrink-0">{property.property_type}</Badge>
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
-                              <MapPin className="w-4 h-4 mr-1" />
-                              {property.full_address}
+                              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{property.full_address}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-6 text-sm">
-                          <div className="text-center">
-                            <div className="font-medium text-gray-900">{property.units?.length || 0}</div>
-                            <div className="text-gray-600">Units</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-medium text-green-600">{formatCurrency(totalRent)}</div>
-                            <div className="text-gray-600">Monthly</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-medium text-blue-600">{occupancyInfo.occupied}/{occupancyInfo.total}</div>
-                            <div className="text-gray-600">Occupied</div>
-                          </div>
-                          <div className="text-center">
-                            <div className={`font-medium ${
-                              occupancyInfo.rate >= 80 
-                                ? 'text-green-600' 
-                                : occupancyInfo.rate >= 50 
-                                ? 'text-yellow-600' 
-                                : 'text-red-600'
-                            }`}>
-                              {occupancyInfo.rate.toFixed(0)}%
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 text-sm">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                            <div className="text-center">
+                              <div className="font-medium text-gray-900">{property.units?.length || 0}</div>
+                              <div className="text-gray-600 text-xs">Units</div>
                             </div>
-                            <div className="text-gray-600">Rate</div>
+                            <div className="text-center">
+                              <div className="font-medium text-green-600 text-sm">{formatCurrency(totalRent)}</div>
+                              <div className="text-gray-600 text-xs">Monthly</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="font-medium text-blue-600">{occupancyInfo.occupied}/{occupancyInfo.total}</div>
+                              <div className="text-gray-600 text-xs">Occupied</div>
+                            </div>
+                            <div className="text-center">
+                              <div className={`font-medium ${
+                                occupancyInfo.rate >= 80 
+                                  ? 'text-green-600' 
+                                  : occupancyInfo.rate >= 50 
+                                  ? 'text-yellow-600' 
+                                  : 'text-red-600'
+                              }`}>
+                                {occupancyInfo.rate.toFixed(0)}%
+                              </div>
+                              <div className="text-gray-600 text-xs">Rate</div>
+                            </div>
                           </div>
-                          <Link href={`/dashboard/properties/${property.id}`}>
-                            <Button variant="outline" size="sm">
+                          <Link href={`/dashboard/properties/${property.id}`} className="w-full sm:w-auto">
+                            <Button variant="outline" size="sm" className="w-full sm:w-auto">
                               View Details
                             </Button>
                           </Link>
@@ -246,21 +248,21 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                           {property.units.map((unit: any) => (
                             <div
                               key={unit.id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3"
                             >
-                              <div className="flex items-center space-x-3">
+                              <div className="flex items-start space-x-3 min-w-0 flex-1">
                                 {getUnitIcon(unit.unit_name)}
-                                <div>
-                                  <div className="font-medium text-gray-900">{unit.unit_name}</div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium text-gray-900 truncate">{unit.unit_name}</div>
                                   {unit.tenant_name && (
-                                    <div className="text-sm text-gray-600">Tenant: {unit.tenant_name}</div>
+                                    <div className="text-sm text-gray-600 truncate">Tenant: {unit.tenant_name}</div>
                                   )}
                                   {unit.unit_notes && (
-                                    <div className="text-sm text-gray-500">{unit.unit_notes}</div>
+                                    <div className="text-sm text-gray-500 truncate">{unit.unit_notes}</div>
                                   )}
                                 </div>
                               </div>
-                              <div className="text-right">
+                              <div className="text-right flex-shrink-0">
                                 <div className="font-medium text-green-600">
                                   {formatCurrency(unit.rent_price)}
                                 </div>
@@ -277,8 +279,8 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                       )}
                       
                       <div className="flex justify-end mt-4 pt-4 border-t">
-                        <Link href={`/dashboard/properties/${property.id}`}>
-                          <Button variant="outline" size="sm">
+                        <Link href={`/dashboard/properties/${property.id}`} className="w-full sm:w-auto">
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto">
                             View Details
                           </Button>
                         </Link>

@@ -3,62 +3,24 @@ import { supabase } from './supabase';
 // Simple password-based authentication
 const APP_PASSWORD = process.env.NEXT_PUBLIC_APP_PASSWORD || 'kairy123';
 const MASTER_USER_EMAIL = 'markbtesh@gmail.com';
-const MASTER_USER_PASSWORD = 'master123456';
 
-// Get the master user ID from the database or use a default
-let MASTER_USER_ID: string | null = null;
-
-const getMasterUserId = async (): Promise<string> => {
-  if (MASTER_USER_ID) return MASTER_USER_ID;
-  
-  try {
-    // Try to get the existing master user
-    const { data, error } = await supabase
-      .from('auth.users')
-      .select('id')
-      .eq('email', MASTER_USER_EMAIL)
-      .single();
-    
-    if (data?.id) {
-      MASTER_USER_ID = data.id;
-      return data.id;
-    }
-  } catch (error) {
-    console.log('No existing master user found, will create one');
-  }
-  
-  // If no user exists, create one
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: MASTER_USER_EMAIL,
-      password: MASTER_USER_PASSWORD,
-    });
-    
-    if (data.user?.id) {
-      MASTER_USER_ID = data.user.id;
-      return data.user.id;
-    }
-  } catch (error) {
-    console.error('Error creating master user:', error);
-  }
-  
-  // Fallback: use a fixed UUID (you'll need to create this user manually)
-  return '00000000-0000-0000-0000-000000000001';
-};
+// Use a fixed master user ID - you'll need to create this user in Supabase
+// Run this SQL in your Supabase SQL Editor to get/create the user ID:
+// SELECT id FROM auth.users WHERE email = 'markbtesh@gmail.com';
+// If no user exists, create one manually in Authentication > Users
+const MASTER_USER_ID = 'b26ad0b2-e683-4382-84e0-411d7d7ca9a4'; // Real user ID from Supabase
 
 export const signIn = async (password: string) => {
   if (password === APP_PASSWORD) {
     try {
-      const userId = await getMasterUserId();
-      
       // Store authentication state in localStorage
       localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userId', userId);
+      localStorage.setItem('userId', MASTER_USER_ID);
       
       return { 
         data: { 
           user: { 
-            id: userId, 
+            id: MASTER_USER_ID, 
             email: MASTER_USER_EMAIL 
           } 
         }, 
@@ -93,6 +55,12 @@ export const getCurrentUser = async () => {
     };
   }
   return null;
+};
+
+// Function to clear authentication and force re-login
+export const clearAuth = () => {
+  localStorage.removeItem('isAuthenticated');
+  localStorage.removeItem('userId');
 };
 
 // Keep the signUp function for compatibility but make it a no-op
