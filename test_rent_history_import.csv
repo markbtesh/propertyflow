@@ -1,0 +1,7 @@
+Property Id,Address,Unit,Year,Month,Rent Date,Rent Amount,Payment Method,Rent Notes
+405-mother-gaston-blvd,405 Mother Gaston Blvd,store,2024,1,2024-01-01,3934,Bank Transfer,On time payment
+405-mother-gaston-blvd,405 Mother Gaston Blvd,store,2024,2,2024-02-01,3934,Bank Transfer,On time payment
+405-mother-gaston-blvd,405 Mother Gaston Blvd,2F,2024,1,2024-01-01,3560,Check,On time payment
+405-mother-gaston-blvd,405 Mother Gaston Blvd,2F,2024,2,2024-02-01,3560,Check,On time payment
+642-flatbush-ave,642 Flatbush Ave,Store,2024,1,2024-01-01,5715,Cash,On time payment
+642-flatbush-ave,642 Flatbush Ave,Store,2024,2,2024-02-01,5715,Cash,On time payment

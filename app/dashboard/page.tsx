@@ -22,15 +22,17 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Overview of your property portfolio</p>
+      <div className="space-y-8">
+        <div className="animate-fade-in-up">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600 text-lg">Overview of your property portfolio</p>
         </div>
 
-        <DashboardStats refreshTrigger={refreshTrigger} />
+        <div className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <DashboardStats refreshTrigger={refreshTrigger} />
+        </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
           <PropertyList 
             onCreateNew={handleCreateNew}
             refreshTrigger={refreshTrigger}

@@ -21,6 +21,14 @@ export interface CSVProperty {
   tenant_name?: string;
   unit_notes?: string;
   
+  // Monthly Rent History fields
+  year?: string;
+  month?: string;
+  rent_date?: string;
+  rent_amount?: string;
+  payment_method?: string;
+  rent_notes?: string;
+  
   // User's specific format fields
   property_id?: string;
   address?: string;
@@ -78,7 +86,13 @@ export const generateCSVTemplate = (): string => {
       lease_start: '',
       lease_expires: '',
       unit_notes: 'Commercial space',
-      tenancy_notes: ''
+      tenancy_notes: '',
+      year: '2024',
+      month: '1',
+      rent_date: '2024-01-01',
+      rent_amount: '3934',
+      payment_method: 'Bank Transfer',
+      rent_notes: 'On time payment'
     },
     {
       property_id: '405-mother-gaston-blvd',
@@ -97,7 +111,13 @@ export const generateCSVTemplate = (): string => {
       lease_start: '',
       lease_expires: '',
       unit_notes: '2nd floor apartment',
-      tenancy_notes: ''
+      tenancy_notes: '',
+      year: '2024',
+      month: '1',
+      rent_date: '2024-01-01',
+      rent_amount: '3560',
+      payment_method: 'Check',
+      rent_notes: 'On time payment'
     },
     {
       property_id: '642-flatbush-ave',
@@ -116,7 +136,13 @@ export const generateCSVTemplate = (): string => {
       lease_start: '',
       lease_expires: '',
       unit_notes: 'Ground floor commercial',
-      tenancy_notes: ''
+      tenancy_notes: '',
+      year: '2024',
+      month: '1',
+      rent_date: '2024-01-01',
+      rent_amount: '5715',
+      payment_method: 'Cash',
+      rent_notes: 'On time payment'
     }
   ];
 
@@ -201,6 +227,27 @@ export const validateCSVData = (data: CSVProperty[]): { valid: CSVProperty[], er
         errors.push(`Row ${rowNumber}: Rent must be a number`);
         return;
       }
+
+      // Validate rent history fields if present
+      if (row.year && isNaN(Number(row.year))) {
+        errors.push(`Row ${rowNumber}: Year must be a number`);
+        return;
+      }
+
+      if (row.month && (isNaN(Number(row.month)) || Number(row.month) < 1 || Number(row.month) > 12)) {
+        errors.push(`Row ${rowNumber}: Month must be a number between 1 and 12`);
+        return;
+      }
+
+      if (row.rent_amount && isNaN(Number(row.rent_amount.replace(/[$,]/g, '')))) {
+        errors.push(`Row ${rowNumber}: Rent Amount must be a number`);
+        return;
+      }
+
+      if (row.rent_date && isNaN(Date.parse(row.rent_date))) {
+        errors.push(`Row ${rowNumber}: Rent Date must be a valid date`);
+        return;
+      }
       
       valid.push(row);
     } else if (row.property_name && row.full_address) {
@@ -226,10 +273,7 @@ export const validateCSVData = (data: CSVProperty[]): { valid: CSVProperty[], er
         return;
       }
       
-      if (!row.zip || !row.zip.trim()) {
-        errors.push(`Row ${rowNumber}: ZIP is required`);
-        return;
-      }
+      // ZIP is optional - no validation needed
       
       if (!row.property_type || !row.property_type.trim()) {
         errors.push(`Row ${rowNumber}: Property type is required`);
@@ -255,6 +299,27 @@ export const validateCSVData = (data: CSVProperty[]): { valid: CSVProperty[], er
       // Validate date format
       if (row.acquisition_date && isNaN(Date.parse(row.acquisition_date))) {
         errors.push(`Row ${rowNumber}: Acquisition date must be a valid date`);
+        return;
+      }
+
+      // Validate rent history fields if present
+      if (row.year && isNaN(Number(row.year))) {
+        errors.push(`Row ${rowNumber}: Year must be a number`);
+        return;
+      }
+
+      if (row.month && (isNaN(Number(row.month)) || Number(row.month) < 1 || Number(row.month) > 12)) {
+        errors.push(`Row ${rowNumber}: Month must be a number between 1 and 12`);
+        return;
+      }
+
+      if (row.rent_amount && isNaN(Number(row.rent_amount.replace(/[$,]/g, '')))) {
+        errors.push(`Row ${rowNumber}: Rent Amount must be a number`);
+        return;
+      }
+
+      if (row.rent_date && isNaN(Date.parse(row.rent_date))) {
+        errors.push(`Row ${rowNumber}: Rent Date must be a valid date`);
         return;
       }
       
@@ -303,26 +368,64 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
   properties.forEach(property => {
     if (property.units && property.units.length > 0) {
       property.units.forEach((unit: any) => {
-        csvData.push({
-          property_name: property.property_name,
-          full_address: property.full_address,
-          city: property.city,
-          state: property.state,
-          zip: property.zip,
-          property_type: property.property_type,
-          square_footage: property.square_footage?.toString() || '',
-          acquisition_price: property.acquisition_price?.toString() || '',
-          acquisition_date: property.acquisition_date || '',
-          notes: property.notes || '',
-          external_id: property.external_id || '',
-          image_url: property.street_view_image_url || '',
-          unit_name: unit.unit_name,
-          rent_price: unit.rent_price?.toString() || '',
-          tenant_name: unit.tenant_name || '',
-          unit_notes: unit.unit_notes || ''
-        });
+        // If unit has rent history, create a row for each rent history record
+        if (unit.monthly_rent_history && unit.monthly_rent_history.length > 0) {
+          unit.monthly_rent_history.forEach((rentRecord: any) => {
+            csvData.push({
+              property_name: property.property_name,
+              full_address: property.full_address,
+              city: property.city,
+              state: property.state,
+              zip: property.zip,
+              property_type: property.property_type,
+              square_footage: property.square_footage?.toString() || '',
+              acquisition_price: property.acquisition_price?.toString() || '',
+              acquisition_date: property.acquisition_date || '',
+              notes: property.notes || '',
+              external_id: property.external_id || '',
+              image_url: property.street_view_image_url || '',
+              unit_name: unit.unit_name,
+              rent_price: unit.rent_price?.toString() || '',
+              tenant_name: unit.tenant_name || '',
+              unit_notes: unit.unit_notes || '',
+              year: rentRecord.year?.toString() || '',
+              month: rentRecord.month?.toString() || '',
+              rent_date: rentRecord.rent_date || '',
+              rent_amount: rentRecord.amount?.toString() || '',
+              payment_method: rentRecord.method || '',
+              rent_notes: rentRecord.notes || ''
+            });
+          });
+        } else {
+          // Unit exists but no rent history
+          csvData.push({
+            property_name: property.property_name,
+            full_address: property.full_address,
+            city: property.city,
+            state: property.state,
+            zip: property.zip,
+            property_type: property.property_type,
+            square_footage: property.square_footage?.toString() || '',
+            acquisition_price: property.acquisition_price?.toString() || '',
+            acquisition_date: property.acquisition_date || '',
+            notes: property.notes || '',
+            external_id: property.external_id || '',
+            image_url: property.street_view_image_url || '',
+            unit_name: unit.unit_name,
+            rent_price: unit.rent_price?.toString() || '',
+            tenant_name: unit.tenant_name || '',
+            unit_notes: unit.unit_notes || '',
+            year: '',
+            month: '',
+            rent_date: '',
+            rent_amount: '',
+            payment_method: '',
+            rent_notes: ''
+          });
+        }
       });
     } else {
+      // Property exists but no units
       csvData.push({
         property_name: property.property_name,
         full_address: property.full_address,
@@ -335,10 +438,207 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
         acquisition_date: property.acquisition_date || '',
         notes: property.notes || '',
         external_id: property.external_id || '',
-        image_url: property.street_view_image_url || ''
+        image_url: property.street_view_image_url || '',
+        year: '',
+        month: '',
+        rent_date: '',
+        rent_amount: '',
+        payment_method: '',
+        rent_notes: ''
       });
     }
   });
 
   return Papa.unparse(csvData);
+};
+
+export const generateRentHistoryTemplate = (): string => {
+  const template = [
+    {
+      'Property Id': '405-mother-gaston-blvd',
+      'Address': '405 Mother Gaston Blvd',
+      'Unit': 'store',
+      'Year': '2024',
+      'Month': '1',
+      'Rent Date': '2024-01-01',
+      'Rent Amount': '3934',
+      'Payment Method': 'Bank Transfer',
+      'Rent Notes': 'On time payment'
+    },
+    {
+      'Property Id': '405-mother-gaston-blvd',
+      'Address': '405 Mother Gaston Blvd',
+      'Unit': 'store',
+      'Year': '2024',
+      'Month': '2',
+      'Rent Date': '2024-02-01',
+      'Rent Amount': '3934',
+      'Payment Method': 'Bank Transfer',
+      'Rent Notes': 'On time payment'
+    },
+    {
+      'Property Id': '405-mother-gaston-blvd',
+      'Address': '405 Mother Gaston Blvd',
+      'Unit': '2F',
+      'Year': '2024',
+      'Month': '1',
+      'Rent Date': '2024-01-01',
+      'Rent Amount': '3560',
+      'Payment Method': 'Check',
+      'Rent Notes': 'On time payment'
+    },
+    {
+      'Property Id': '405-mother-gaston-blvd',
+      'Address': '405 Mother Gaston Blvd',
+      'Unit': '2F',
+      'Year': '2024',
+      'Month': '2',
+      'Rent Date': '2024-02-01',
+      'Rent Amount': '3560',
+      'Payment Method': 'Check',
+      'Rent Notes': 'On time payment'
+    }
+  ];
+
+  return Papa.unparse(template);
+};
+
+export const exportRentHistoryToCSV = (properties: any[]): string => {
+  const csvData: any[] = [];
+  
+  properties.forEach(property => {
+    if (property.units && property.units.length > 0) {
+      property.units.forEach((unit: any) => {
+        if (unit.monthly_rent_history && unit.monthly_rent_history.length > 0) {
+          unit.monthly_rent_history.forEach((rentRecord: any) => {
+            csvData.push({
+              'Property Id': property.external_id || '',
+              'Address': property.full_address,
+              'Unit': unit.unit_name,
+              'Year': rentRecord.year?.toString() || '',
+              'Month': rentRecord.month?.toString() || '',
+              'Rent Date': rentRecord.rent_date || '',
+              'Rent Amount': rentRecord.amount?.toString() || '',
+              'Payment Method': rentRecord.method || '',
+              'Rent Notes': rentRecord.notes || ''
+            });
+          });
+        }
+      });
+    }
+  });
+
+  return Papa.unparse(csvData);
+};
+
+// New function to process CSV data and create monthly rent history
+export const processCSVForMonthlyRentHistory = async (
+  csvData: CSVProperty[], 
+  createProperty: Function, 
+  upsertProperty: Function, 
+  createUnit: Function, 
+  upsertUnit: Function,
+  upsertMonthlyRentHistory: Function
+) => {
+  const results = {
+    propertiesCreated: 0,
+    propertiesUpdated: 0,
+    unitsCreated: 0,
+    unitsUpdated: 0,
+    rentHistoryCreated: 0,
+    errors: [] as string[]
+  };
+
+  // Group data by property
+  const propertyGroups = new Map<string, CSVProperty[]>();
+  
+  csvData.forEach((row, index) => {
+    const propertyKey = row.property_id || row['Property Id'] || `${row.property_name}-${row.full_address}`;
+    if (!propertyGroups.has(propertyKey)) {
+      propertyGroups.set(propertyKey, []);
+    }
+    propertyGroups.get(propertyKey)!.push(row);
+  });
+
+  // Process each property group
+  propertyGroups.forEach((rows, propertyKey) => {
+    (async () => {
+      try {
+        const firstRow = rows[0];
+        
+        // Create or update property
+        const propertyData = {
+          property_name: firstRow.property_name || firstRow.address || `Property ${propertyKey}`,
+          full_address: firstRow.full_address || firstRow.address || '',
+          city: firstRow.city || parseAddress(firstRow.address || '').city,
+          state: firstRow.state || parseAddress(firstRow.address || '').state,
+          zip: firstRow.zip || parseAddress(firstRow.address || '').zip,
+          property_type: firstRow.property_type || 'Multi-family',
+          square_footage: firstRow.square_footage || firstRow.sq_ft ? parseInt(firstRow.square_footage || firstRow.sq_ft || '0') : null,
+          acquisition_price: firstRow.acquisition_price ? parseFloat(cleanCurrency(firstRow.acquisition_price)) : null,
+          acquisition_date: firstRow.acquisition_date || null,
+          notes: firstRow.notes || '',
+          external_id: firstRow.external_id || firstRow.property_id || firstRow['Property Id'] || null,
+          street_view_image_url: firstRow.image_url || null,
+        };
+
+        let property;
+        if (propertyData.external_id) {
+          property = await upsertProperty(propertyData);
+          results.propertiesUpdated++;
+        } else {
+          property = await createProperty(propertyData);
+          results.propertiesCreated++;
+        }
+
+        // Process units for this property
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.unit_name || row.unit || row['Unit']) {
+            const unitData = {
+              property_id: property.id,
+              unit_name: row.unit_name || row.unit || row['Unit'] || '',
+              rent_price: row.rent_price || row.rent || row.market_rent ? parseFloat(cleanCurrency(row.rent_price || row.rent || row.market_rent || '0')) : null,
+              tenant_name: row.tenant_name || row.primary_tenant_name || row['Primary Tenant Name'] || null,
+              unit_notes: row.unit_notes || row['Unit Notes'] || null,
+            };
+
+            let unit;
+            if (unitData.unit_name) {
+              unit = await upsertUnit(unitData);
+              if (unit.id) {
+                results.unitsUpdated++;
+              } else {
+                results.unitsCreated++;
+              }
+
+              // Process rent history if available
+              if (row.year && row.month && (row.rent_amount || row.rent || row.market_rent)) {
+                try {
+                  await upsertMonthlyRentHistory({
+                    unit_id: unit.id,
+                    year: parseInt(row.year),
+                    month: parseInt(row.month),
+                    rent_date: row.rent_date || null,
+                    amount: row.rent_amount || row.rent || row.market_rent ? parseFloat(cleanCurrency(row.rent_amount || row.rent || row.market_rent || '0')) : null,
+                    method: row.payment_method || 'CSV Import',
+                    notes: row.rent_notes || null,
+                  });
+                  results.rentHistoryCreated++;
+                } catch (error) {
+                  console.error('Error creating rent history:', error);
+                  results.errors.push(`Row ${i + 1}: Failed to create rent history - ${error}`);
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing property group:', error);
+        results.errors.push(`Property ${propertyKey}: ${error}`);
+      }
+    })();
+  });
+
+  return results;
 };

@@ -107,7 +107,7 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="text-2xl font-bold text-gray-900">
           {property ? 'Edit Property' : 'Add New Property'}
         </CardTitle>
       </CardHeader>
@@ -115,7 +115,7 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="property_name">Property Name *</Label>
+              <Label htmlFor="property_name" className="text-gray-700 font-medium">Property Name *</Label>
               <Input
                 id="property_name"
                 type="text"
@@ -123,16 +123,17 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
                 onChange={(e) => handleInputChange('property_name', e.target.value)}
                 placeholder="Enter property name"
                 required
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="property_type">Property Type *</Label>
+              <Label htmlFor="property_type" className="text-gray-700 font-medium">Property Type *</Label>
               <Select
                 value={formData.property_type}
                 onValueChange={(value) => handleInputChange('property_type', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                   <SelectValue placeholder="Select property type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,7 +148,7 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="full_address">Full Address *</Label>
+            <Label htmlFor="full_address" className="text-gray-700 font-medium">Full Address *</Label>
             <Input
               id="full_address"
               type="text"
@@ -155,12 +156,13 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
               onChange={(e) => handleInputChange('full_address', e.target.value)}
               placeholder="Enter full street address"
               required
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">City *</Label>
+              <Label htmlFor="city" className="text-gray-700 font-medium">City *</Label>
               <Input
                 id="city"
                 type="text"
@@ -168,11 +170,12 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
                 onChange={(e) => handleInputChange('city', e.target.value)}
                 placeholder="Enter city"
                 required
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">State *</Label>
+              <Label htmlFor="state" className="text-gray-700 font-medium">State *</Label>
               <Input
                 id="state"
                 type="text"
@@ -180,11 +183,12 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
                 onChange={(e) => handleInputChange('state', e.target.value)}
                 placeholder="Enter state"
                 required
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zip">ZIP Code *</Label>
+              <Label htmlFor="zip" className="text-gray-700 font-medium">ZIP Code *</Label>
               <Input
                 id="zip"
                 type="text"
@@ -192,24 +196,26 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
                 onChange={(e) => handleInputChange('zip', e.target.value)}
                 placeholder="Enter ZIP code"
                 required
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="square_footage">Square Footage</Label>
+              <Label htmlFor="square_footage" className="text-gray-700 font-medium">Square Footage</Label>
               <Input
                 id="square_footage"
                 type="number"
                 value={formData.square_footage}
                 onChange={(e) => handleInputChange('square_footage', e.target.value)}
                 placeholder="Enter square footage"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="acquisition_price">Acquisition Price</Label>
+              <Label htmlFor="acquisition_price" className="text-gray-700 font-medium">Acquisition Price</Label>
               <Input
                 id="acquisition_price"
                 type="number"
@@ -217,41 +223,45 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
                 value={formData.acquisition_price}
                 onChange={(e) => handleInputChange('acquisition_price', e.target.value)}
                 placeholder="Enter acquisition price"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="acquisition_date">Acquisition Date</Label>
+              <Label htmlFor="acquisition_date" className="text-gray-700 font-medium">Acquisition Date</Label>
               <Input
                 id="acquisition_date"
                 type="date"
                 value={formData.acquisition_date}
                 onChange={(e) => handleInputChange('acquisition_date', e.target.value)}
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="external_id">External ID</Label>
+              <Label htmlFor="external_id" className="text-gray-700 font-medium">External ID</Label>
               <Input
                 id="external_id"
                 type="text"
                 value={formData.external_id}
                 onChange={(e) => handleInputChange('external_id', e.target.value)}
                 placeholder="Enter external ID"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image_url">Property Image URL</Label>
+            <Label htmlFor="image_url" className="text-gray-700 font-medium">Property Image URL</Label>
             <Input
               id="image_url"
               type="url"
               value={formData.image_url}
               onChange={(e) => handleInputChange('image_url', e.target.value)}
               placeholder="Enter image URL (optional)"
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
             <p className="text-sm text-gray-500">
               You can use any image URL, or try a placeholder service like: https://picsum.photos/400/300
@@ -259,21 +269,31 @@ export default function PropertyForm({ property, onSuccess, onCancel }: Property
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-gray-700 font-medium">Notes</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Enter any notes about this property"
               rows={3}
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
 
           <div className="flex space-x-4">
-            <Button type="submit" disabled={loading} className="flex-1">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-1 gradient-button text-white border-0 interactive-button"
+            >
               {loading ? 'Saving...' : property ? 'Update Property' : 'Create Property'}
             </Button>
-            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel} 
+              className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 interactive-button"
+            >
               Cancel
             </Button>
           </div>

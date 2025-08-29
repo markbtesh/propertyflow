@@ -4,6 +4,7 @@ import type { Database } from './supabase';
 type Property = Database['public']['Tables']['properties']['Row'];
 type Unit = Database['public']['Tables']['units']['Row'];
 type RentHistory = Database['public']['Tables']['rent_history']['Row'];
+type MonthlyRentHistory = Database['public']['Tables']['monthly_rent_history']['Row'];
 
 export const getProperties = async (userId: string) => {
   console.log('Fetching properties for user ID:', userId);
@@ -14,7 +15,8 @@ export const getProperties = async (userId: string) => {
       *,
       units (
         *,
-        rent_history (*)
+        rent_history (*),
+        monthly_rent_history (*)
       )
     `)
     // Temporarily remove user_id filter to see all properties
@@ -39,7 +41,8 @@ export const getProperty = async (propertyId: string, userId: string) => {
       *,
       units (
         *,
-        rent_history (*)
+        rent_history (*),
+        monthly_rent_history (*)
       )
     `)
     .eq('id', propertyId)
@@ -83,10 +86,13 @@ export const createProperty = async (property: Database['public']['Tables']['pro
 };
 
 export const upsertProperty = async (property: Database['public']['Tables']['properties']['Insert']) => {
+  console.log('Upserting property:', property);
+  
   // Check if property exists by external_id or address
   let existingProperty = null;
   
   if (property.external_id) {
+    console.log('Looking for property with external_id:', property.external_id);
     const { data } = await supabase
       .from('properties')
       .select('*')
@@ -94,6 +100,7 @@ export const upsertProperty = async (property: Database['public']['Tables']['pro
       .eq('user_id', property.user_id)
       .single();
     existingProperty = data;
+    console.log('Found existing property:', existingProperty);
   }
   
   // If not found by external_id, try by address
@@ -235,6 +242,121 @@ export const createRentHistory = async (rentHistory: Database['public']['Tables'
   if (error) {
     console.error('Error creating rent history:', error);
     throw error;
+  }
+
+  return data;
+};
+
+// New functions for monthly rent history
+export const getMonthlyRentHistory = async (unitId: string, year?: number) => {
+  let query = supabase
+    .from('monthly_rent_history')
+    .select('*')
+    .eq('unit_id', unitId)
+    .order('year', { ascending: false })
+    .order('month', { ascending: false });
+
+  if (year) {
+    query = query.eq('year', year);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching monthly rent history:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
+export const createMonthlyRentHistory = async (rentHistory: Database['public']['Tables']['monthly_rent_history']['Insert']) => {
+  const { data, error } = await supabase
+    .from('monthly_rent_history')
+    .insert([rentHistory])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating monthly rent history:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const upsertMonthlyRentHistory = async (rentHistory: Database['public']['Tables']['monthly_rent_history']['Insert']) => {
+  console.log('Upserting monthly rent history:', rentHistory);
+  
+  const { data, error } = await supabase
+    .from('monthly_rent_history')
+    .upsert([rentHistory], { 
+      onConflict: 'unit_id,year,month',
+      ignoreDuplicates: false 
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error upserting monthly rent history:', error);
+    throw error;
+  }
+
+  console.log('Monthly rent history upserted successfully:', data);
+  return data;
+};
+
+export const updateMonthlyRentHistory = async (
+  id: string, 
+  updates: Database['public']['Tables']['monthly_rent_history']['Update']
+) => {
+  const { data, error } = await supabase
+    .from('monthly_rent_history')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating monthly rent history:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+export const deleteMonthlyRentHistory = async (id: string) => {
+  const { error } = await supabase
+    .from('monthly_rent_history')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting monthly rent history:', error);
+    throw error;
+  }
+};
+
+export const getUnitWithMonthlyRentHistory = async (unitId: string, year?: number) => {
+  const { data, error } = await supabase
+    .from('units')
+    .select(`
+      *,
+      monthly_rent_history (*)
+    `)
+    .eq('id', unitId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching unit with monthly rent history:', error);
+    throw error;
+  }
+
+  // Filter by year if specified
+  if (year && data.monthly_rent_history) {
+    data.monthly_rent_history = data.monthly_rent_history.filter(
+      (record: any) => record.year === year
+    );
   }
 
   return data;

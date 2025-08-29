@@ -21,23 +21,21 @@ export default function PropertiesPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <PropertyList 
-            onCreateNew={handleCreateNew}
-            refreshTrigger={refreshTrigger}
-          />
-        </div>
-
-        <Dialog open={showPropertyForm} onOpenChange={setShowPropertyForm}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <PropertyForm
-              onSuccess={handlePropertySuccess}
-              onCancel={() => setShowPropertyForm(false)}
-            />
-          </DialogContent>
-        </Dialog>
+      <div className="animate-fade-in-up">
+        <PropertyList 
+          onCreateNew={handleCreateNew}
+          refreshTrigger={refreshTrigger}
+        />
       </div>
+
+      <Dialog open={showPropertyForm} onOpenChange={setShowPropertyForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass border-white/20">
+          <PropertyForm
+            onSuccess={handlePropertySuccess}
+            onCancel={() => setShowPropertyForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

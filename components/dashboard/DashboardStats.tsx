@@ -51,43 +51,43 @@ export default function DashboardStats({ refreshTrigger }: DashboardStatsProps) 
       title: 'Total Properties',
       value: stats.totalProperties.toString(),
       icon: Building2,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      gradientClass: 'stat-card-gradient-1',
+      delay: 0,
     },
     {
       title: 'Total Units',
       value: stats.totalUnits.toString(),
       icon: Home,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      gradientClass: 'stat-card-gradient-2',
+      delay: 100,
     },
     {
       title: 'Occupied Units',
       value: stats.occupiedUnits.toString(),
       icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      gradientClass: 'stat-card-gradient-3',
+      delay: 200,
     },
     {
       title: 'Monthly Rent',
       value: formatCurrency(stats.totalMonthlyRent),
       icon: DollarSign,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-50',
+      gradientClass: 'stat-card-gradient-4',
+      delay: 300,
     },
     {
       title: 'Occupancy Rate',
       value: `${stats.occupancyRate.toFixed(1)}%`,
       icon: Percent,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
+      gradientClass: 'stat-card-gradient-5',
+      delay: 400,
     },
     {
       title: 'Average Rent',
       value: formatCurrency(stats.averageRent),
       icon: TrendingUp,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
+      gradientClass: 'stat-card-gradient-6',
+      delay: 500,
     },
   ];
 
@@ -95,12 +95,12 @@ export default function DashboardStats({ refreshTrigger }: DashboardStatsProps) 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i} className="animate-pulse glass">
             <CardHeader className="pb-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-white/20 rounded w-3/4"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-8 bg-white/20 rounded w-1/2"></div>
             </CardContent>
           </Card>
         ))}
@@ -113,17 +113,33 @@ export default function DashboardStats({ refreshTrigger }: DashboardStatsProps) 
       {statCards.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
+          <Card 
+            key={index} 
+            className={`${stat.gradientClass} text-white border-0 shadow-xl`}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-white/90">
                 {stat.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <Icon className={`w-5 h-5 ${stat.color}`} />
+              <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm">
+                <Icon className="w-6 h-6 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+              <div className="text-3xl font-bold text-white drop-shadow-sm">{stat.value}</div>
+              <div className="mt-2 text-white/80 text-sm">
+                {stat.title === 'Occupancy Rate' && (
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 bg-white/20 rounded-full h-2">
+                      <div 
+                        className="bg-white h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${Math.min(stats.occupancyRate, 100)}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs">{stats.occupancyRate.toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         );

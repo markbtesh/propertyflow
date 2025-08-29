@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Download, FileText, CheckCircle, AlertCircle } from 'lucide-react';
-import { parseCSV, validateCSVData, generateCSVTemplate, CSVProperty, parseAddress, cleanCurrency } from '@/lib/csv';
-import { upsertProperty, upsertUnit } from '@/lib/api';
+import { parseCSV, validateCSVData, generateCSVTemplate, generateRentHistoryTemplate, CSVProperty, parseAddress, cleanCurrency, processCSVForMonthlyRentHistory, exportPropertiesToCSV, exportRentHistoryToCSV } from '@/lib/csv';
+import { upsertProperty, upsertUnit, upsertMonthlyRentHistory, getProperties } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 
 export default function ImportPage() {
@@ -89,6 +89,122 @@ export default function ImportPage() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleDownloadCurrentData = async () => {
+    try {
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'User not authenticated.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const properties = await getProperties(user.id);
+      if (properties.length === 0) {
+        toast({
+          title: 'No data to export',
+          description: 'You don\'t have any properties to export yet.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const csvData = exportPropertiesToCSV(properties);
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'propertyflow_current_data.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Export successful',
+        description: `Exported ${properties.length} properties with their units.`,
+      });
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export current data.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownloadRentHistoryTemplate = () => {
+    const template = generateRentHistoryTemplate();
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'propertyflow_rent_history_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadRentHistoryData = async () => {
+    try {
+      const user = await getCurrentUser();
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'User not authenticated.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const properties = await getProperties(user.id);
+      if (properties.length === 0) {
+        toast({
+          title: 'No data to export',
+          description: 'You don\'t have any properties to export yet.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const csvData = exportRentHistoryToCSV(properties);
+      if (!csvData || csvData.trim() === '') {
+        toast({
+          title: 'No rent history to export',
+          description: 'You don\'t have any rent history data to export yet.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'propertyflow_rent_history_data.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Rent history export successful',
+        description: 'Exported all rent history data.',
+      });
+    } catch (error) {
+      console.error('Error exporting rent history:', error);
+      toast({
+        title: 'Export failed',
+        description: 'Failed to export rent history data.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleImport = async () => {
     if (csvData.length === 0) {
       toast({
@@ -120,12 +236,17 @@ export default function ImportPage() {
       // Group rows by property to avoid creating duplicate properties
       const propertyGroups = new Map<string, CSVProperty[]>();
       
-      csvData.forEach(row => {
+      console.log('Processing CSV data:', csvData.length, 'rows');
+      console.log('Sample row:', csvData[0]);
+      
+      csvData.forEach((row, index) => {
         let propertyKey: string;
         
         // Handle user's format (property_id + address) - check both formats
         const propertyId = row.property_id || row['Property Id'];
         const address = row.address || row['Address'];
+        
+        console.log(`Row ${index}: propertyId=${propertyId}, address=${address}`);
         
         if (propertyId && address) {
           propertyKey = `${propertyId}|${address}`;
@@ -133,6 +254,7 @@ export default function ImportPage() {
           // Handle original format
           propertyKey = `${row.property_name}|${row.full_address}|${row.external_id || ''}`;
         } else {
+          console.log(`Row ${index}: Skipping invalid row - missing property info`);
           return; // Skip invalid rows
         }
         
@@ -141,11 +263,17 @@ export default function ImportPage() {
         }
         propertyGroups.get(propertyKey)!.push(row);
       });
+      
+      console.log('Property groups created:', propertyGroups.size);
+      propertyGroups.forEach((rows, key) => {
+        console.log(`Property group "${key}": ${rows.length} rows`);
+      });
 
       let successCount = 0;
       let errorCount = 0;
       let propertyCount = 0;
       let unitCount = 0;
+      let rentHistoryCount = 0;
 
       const propertyGroupsArray = Array.from(propertyGroups.entries());
       
@@ -253,8 +381,43 @@ export default function ImportPage() {
                 unit_notes: unitNotes,
               };
 
-              await upsertUnit(unitData);
+              console.log(`Creating/updating unit: ${unitName} for property: ${property.property_name}`);
+              const createdUnit = await upsertUnit(unitData);
               unitCount++;
+              console.log(`✅ Created/updated unit: ${unitName} (ID: ${createdUnit.id}) for property: ${property.property_name}`);
+
+              // Process rent history if available
+              const year = row.year || row['Year'];
+              const month = row.month || row['Month'];
+              const rentAmount = row.rent_amount || row['Rent Amount'] || row.rent || row.market_rent;
+              const rentDate = row.rent_date || row['Rent Date'];
+              const paymentMethod = row.payment_method || row['Payment Method'];
+              const rentNotes = row.rent_notes || row['Rent Notes'];
+              
+              console.log(`Processing rent history for unit ${createdUnit.unit_name}:`, {
+                year, month, rentAmount, rentDate, paymentMethod, rentNotes
+              });
+              
+              if (year && month && rentAmount) {
+                try {
+                  await upsertMonthlyRentHistory({
+                    unit_id: createdUnit.id,
+                    year: parseInt(year),
+                    month: parseInt(month),
+                    rent_date: rentDate || null,
+                    amount: parseFloat(cleanCurrency(rentAmount)),
+                    method: paymentMethod || 'CSV Import',
+                    notes: rentNotes || null,
+                  });
+                  rentHistoryCount++;
+                  console.log(`✅ Created rent history for unit ${createdUnit.unit_name}, year ${year}, month ${month}`);
+                } catch (error) {
+                  console.error('❌ Error creating rent history:', error);
+                  // Don't fail the entire import for rent history errors
+                }
+              } else {
+                console.log(`⚠️ Skipping rent history for unit ${createdUnit.unit_name}: missing year=${year}, month=${month}, or rentAmount=${rentAmount}`);
+              }
             }
           }
 
@@ -267,7 +430,7 @@ export default function ImportPage() {
 
       toast({
         title: 'Import completed',
-        description: `Successfully imported ${propertyCount} properties with ${unitCount} units. ${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
+        description: `Successfully imported ${propertyCount} properties with ${unitCount} units${rentHistoryCount > 0 ? ` and ${rentHistoryCount} rent history records` : ''}. ${errorCount > 0 ? `${errorCount} errors occurred.` : ''}`,
         variant: errorCount > 0 ? 'destructive' : 'default',
       });
 
@@ -336,30 +499,66 @@ export default function ImportPage() {
             </CardContent>
           </Card>
 
-          {/* Template Section */}
+          {/* Property Data Templates */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Download className="w-5 h-5" />
-                Download Template
+                Property Data
               </CardTitle>
               <CardDescription>
-                Get a sample CSV template to see the required format
+                Templates and exports for property and unit information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600">
-                Download our CSV template to see the exact format required for importing your data.
-                The template includes example data and all required fields.
+                Download templates or export your current property and unit data.
               </p>
               
+              <div className="space-y-3">
               <Button onClick={handleDownloadTemplate} variant="outline" className="w-full">
                 <Download className="w-4 h-4 mr-2" />
-                Download Template
+                  Download Property Template
+                </Button>
+                
+                <Button onClick={handleDownloadCurrentData} variant="outline" className="w-full">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Property Data
               </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Rent History Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Rent History Data
+            </CardTitle>
+            <CardDescription>
+              Templates and exports for monthly rent history
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Download rent history templates or export your current rent history data. Each row represents one month of rent for a specific unit.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button onClick={handleDownloadRentHistoryTemplate} variant="outline" className="w-full">
+                <Download className="w-4 h-4 mr-2" />
+                Download Rent History Template
+              </Button>
+              
+              <Button onClick={handleDownloadRentHistoryData} variant="outline" className="w-full">
+                <Download className="w-4 h-4 mr-2" />
+                Export Rent History Data
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Validation Results */}
         {csvData.length > 0 && (
@@ -429,11 +628,13 @@ export default function ImportPage() {
                          
                          const propertyCount = propertyGroups.size;
                          const unitCount = csvData.filter(row => row.unit || row['Unit'] || row.unit_name).length;
+                         const rentHistoryCount = csvData.filter(row => row.year && row.month && (row.rent_amount || row.rent || row.market_rent)).length;
                          
                          return (
                            <div>
                              <p>• <strong>{propertyCount}</strong> unique properties will be created</p>
                              <p>• <strong>{unitCount}</strong> units will be created</p>
+                             <p>• <strong>{rentHistoryCount}</strong> rent history records will be created</p>
                              <p>• Properties with multiple units will be properly linked</p>
                            </div>
                          );
@@ -451,25 +652,31 @@ export default function ImportPage() {
           <CardHeader>
             <CardTitle>CSV Format Requirements</CardTitle>
             <CardDescription>
-              Your CSV file should include the following columns
+              Your CSV file can include property data, rent history data, or both
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Property Data Format */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-900">Property Data Format:</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <h4 className="font-medium mb-2">Required Fields:</h4>
-                  <ul className="space-y-1 text-gray-600">
-                    <li>• property_name</li>
-                    <li>• full_address</li>
-                    <li>• city</li>
-                    <li>• state</li>
-                    <li>• zip</li>
-                    <li>• property_type</li>
-                  </ul>
+                                        <h5 className="font-medium mb-2">Required Fields:</h5>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• property_name</li>
+                      <li>• full_address</li>
+                      <li>• city</li>
+                      <li>• state</li>
+                      <li>• property_type</li>
+                    </ul>
+                    <h5 className="font-medium mb-2 mt-3">Optional Fields:</h5>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• zip</li>
+                    </ul>
                 </div>
                 <div>
-                  <h4 className="font-medium mb-2">Optional Fields:</h4>
+                    <h5 className="font-medium mb-2">Optional Fields:</h5>
                   <ul className="space-y-1 text-gray-600">
                     <li>• square_footage (number)</li>
                     <li>• acquisition_price (number)</li>
@@ -482,11 +689,38 @@ export default function ImportPage() {
                     <li>• tenant_name</li>
                     <li>• unit_notes</li>
                   </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rent History Format */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-900">Rent History Format:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h5 className="font-medium mb-2">Required Fields:</h5>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• Property Id (or external_id)</li>
+                      <li>• Address</li>
+                      <li>• Unit</li>
+                      <li>• Year</li>
+                      <li>• Month (1-12)</li>
+                      <li>• Rent Amount</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium mb-2">Optional Fields:</h5>
+                    <ul className="space-y-1 text-gray-600">
+                      <li>• Rent Date (YYYY-MM-DD)</li>
+                      <li>• Payment Method</li>
+                      <li>• Rent Notes</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
               
                              <div className="p-4 bg-blue-50 rounded-lg">
-                 <h4 className="font-medium text-blue-900 mb-2">How Properties and Units Work:</h4>
+                <h4 className="font-medium text-blue-900 mb-2">How It Works:</h4>
                  <div className="text-sm text-blue-800 space-y-2">
                    <p><strong>Property-Unit Relationship:</strong></p>
                    <ul className="list-disc list-inside space-y-1 ml-4">
@@ -495,7 +729,14 @@ export default function ImportPage() {
                      <li>Multiple units can belong to the same property</li>
                      <li>If no Unit is provided, only the property will be created</li>
                    </ul>
-                   <p className="mt-2"><strong>Example:</strong> A 4-unit apartment building would have 4 rows with the same Property ID and Address but different Unit names (store, 2F, 3F, 4F).</p>
+                  <p className="mt-2"><strong>Rent History:</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Each row represents one month of rent for a specific unit</li>
+                    <li>You can import multiple months for the same unit</li>
+                    <li>Existing rent history will be updated if the same unit/year/month combination exists</li>
+                    <li>Use the separate rent history template for easier management</li>
+                  </ul>
+                  <p className="mt-2"><strong>Example:</strong> A 4-unit apartment building with 12 months of rent history would have 48 rows (4 units × 12 months) in the rent history CSV.</p>
                  </div>
                </div>
             </div>

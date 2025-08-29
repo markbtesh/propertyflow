@@ -103,6 +103,21 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
     return <Home className="w-4 h-4" />;
   };
 
+  const getPropertyTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'multi-family':
+        return 'bg-gradient-to-r from-blue-500 to-purple-600 text-white';
+      case 'mixed-use':
+        return 'bg-gradient-to-r from-green-500 to-teal-600 text-white';
+      case 'commercial':
+        return 'bg-gradient-to-r from-orange-500 to-red-600';
+      case 'residential':
+        return 'bg-gradient-to-r from-pink-500 to-rose-600';
+      default:
+        return 'bg-gradient-to-r from-gray-500 to-gray-600';
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -134,8 +149,11 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
-        <Button onClick={onCreateNew}>
+        <h1 className="text-3xl font-bold text-gray-900">Properties</h1>
+        <Button 
+          onClick={onCreateNew}
+          className="gradient-button text-white border-0 interactive-button"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add Property
         </Button>
@@ -154,8 +172,10 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
 
       {filteredProperties.length === 0 ? (
         <div className="text-center py-12">
-          <Building className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
+            <Building className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
             {searchTerm ? 'No properties found' : 'No properties yet'}
           </h3>
           <p className="text-gray-600 mb-4">
@@ -165,7 +185,10 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
             }
           </p>
           {!searchTerm && (
-            <Button onClick={onCreateNew}>
+            <Button 
+              onClick={onCreateNew}
+              className="gradient-button text-white border-0 interactive-button"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Property
             </Button>
@@ -173,29 +196,37 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredProperties.map((property) => {
+          {filteredProperties.map((property, index) => {
             const occupancyInfo = getOccupancyInfo(property.units);
             const totalRent = getTotalRent(property.units);
             const isExpanded = expandedProperties.has(property.id);
 
             return (
-              <Card key={property.id} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={property.id} 
+                className="border border-gray-200 interactive-card animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
                 <Collapsible open={isExpanded} onOpenChange={() => togglePropertyExpansion(property.id)}>
                   <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors p-4">
+                    <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors p-4 rounded-t-lg">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         <div className="flex items-start space-x-3 min-w-0 flex-1">
-                          {isExpanded ? (
-                            <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                          ) : (
-                            <ChevronRight className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
-                          )}
+                          <div className="flex-shrink-0 mt-0.5">
+                            {isExpanded ? (
+                              <ChevronDown className="w-5 h-5 text-gray-500" />
+                            ) : (
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            )}
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 gap-2">
                               <CardTitle className="text-lg font-semibold text-gray-900 truncate">
                                 {property.property_name}
                               </CardTitle>
-                              <Badge variant="secondary" className="w-fit flex-shrink-0">{property.property_type}</Badge>
+                              <Badge className={`${getPropertyTypeColor(property.property_type)} text-white border-0`}>
+                                {property.property_type}
+                              </Badge>
                             </div>
                             <div className="flex items-center text-sm text-gray-600 mt-1">
                               <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
@@ -206,19 +237,19 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-6 text-sm">
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                             <div className="text-center">
-                              <div className="font-medium text-gray-900">{property.units?.length || 0}</div>
+                              <div className="font-bold text-gray-900 text-lg">{property.units?.length || 0}</div>
                               <div className="text-gray-600 text-xs">Units</div>
                             </div>
                             <div className="text-center">
-                              <div className="font-medium text-green-600 text-sm">{formatCurrency(totalRent)}</div>
+                              <div className="font-bold text-green-600 text-sm">{formatCurrency(totalRent)}</div>
                               <div className="text-gray-600 text-xs">Monthly</div>
                             </div>
                             <div className="text-center">
-                              <div className="font-medium text-blue-600">{occupancyInfo.occupied}/{occupancyInfo.total}</div>
+                              <div className="font-bold text-blue-600">{occupancyInfo.occupied}/{occupancyInfo.total}</div>
                               <div className="text-gray-600 text-xs">Occupied</div>
                             </div>
                             <div className="text-center">
-                              <div className={`font-medium ${
+                              <div className={`font-bold ${
                                 occupancyInfo.rate >= 80 
                                   ? 'text-green-600' 
                                   : occupancyInfo.rate >= 50 
@@ -231,7 +262,11 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                             </div>
                           </div>
                           <Link href={`/dashboard/properties/${property.id}`} className="w-full sm:w-auto">
-                            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full sm:w-auto interactive-button"
+                            >
                               View Details
                             </Button>
                           </Link>
@@ -251,7 +286,9 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                               className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors gap-3"
                             >
                               <div className="flex items-start space-x-3 min-w-0 flex-1">
-                                {getUnitIcon(unit.unit_name)}
+                                <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                                  {getUnitIcon(unit.unit_name)}
+                                </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="font-medium text-gray-900 truncate">{unit.unit_name}</div>
                                   {unit.tenant_name && (
@@ -263,7 +300,7 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                                 </div>
                               </div>
                               <div className="text-right flex-shrink-0">
-                                <div className="font-medium text-green-600">
+                                <div className="font-bold text-green-600">
                                   {formatCurrency(unit.rent_price)}
                                 </div>
                                 <div className="text-sm text-gray-600">per month</div>
@@ -273,14 +310,20 @@ export default function PropertyList({ onCreateNew, refreshTrigger }: PropertyLi
                         </div>
                       ) : (
                         <div className="text-center py-6 text-gray-500">
-                          <Home className="w-8 h-8 mx-auto mb-2" />
+                          <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <Home className="w-6 h-6 text-white" />
+                          </div>
                           <p>No units added yet</p>
                         </div>
                       )}
                       
-                      <div className="flex justify-end mt-4 pt-4 border-t">
+                      <div className="flex justify-end mt-4 pt-4 border-t border-gray-200">
                         <Link href={`/dashboard/properties/${property.id}`} className="w-full sm:w-auto">
-                          <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full sm:w-auto interactive-button"
+                          >
                             View Details
                           </Button>
                         </Link>

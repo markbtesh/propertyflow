@@ -3,7 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false
+  }
+});
 
 export type Database = {
   public: {
@@ -123,6 +129,44 @@ export type Database = {
           transaction_type?: string;
           notes?: string | null;
           created_at?: string;
+        };
+      };
+      monthly_rent_history: {
+        Row: {
+          id: string;
+          unit_id: string;
+          year: number;
+          month: number;
+          rent_date: string | null;
+          amount: number | null;
+          method: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          unit_id: string;
+          year: number;
+          month: number;
+          rent_date?: string | null;
+          amount?: number | null;
+          method?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          unit_id?: string;
+          year?: number;
+          month?: number;
+          rent_date?: string | null;
+          amount?: number | null;
+          method?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
     };
