@@ -387,12 +387,12 @@ export default function ImportPage() {
               console.log(`✅ Created/updated unit: ${unitName} (ID: ${createdUnit.id}) for property: ${property.property_name}`);
 
               // Process rent history if available
-              const year = row.year || row['Year'];
-              const month = row.month || row['Month'];
-              const rentAmount = row.rent_amount || row['Rent Amount'] || row.rent || row.market_rent;
-              const rentDate = row.rent_date || row['Rent Date'];
-              const paymentMethod = row.payment_method || row['Payment Method'];
-              const rentNotes = row.rent_notes || row['Rent Notes'];
+              const year = row['Year'];
+              const month = row['Month'];
+              const rentAmount = row['Rent Amount'] || row.rent || row.market_rent;
+              const rentDate = row['Rent Date'];
+              const paymentMethod = row['Payment Method'];
+              const rentNotes = row['Rent Notes'];
               
               console.log(`Processing rent history for unit ${createdUnit.unit_name}:`, {
                 year, month, rentAmount, rentDate, paymentMethod, rentNotes
@@ -628,7 +628,7 @@ export default function ImportPage() {
                          
                          const propertyCount = propertyGroups.size;
                          const unitCount = csvData.filter(row => row.unit || row['Unit'] || row.unit_name).length;
-                         const rentHistoryCount = csvData.filter(row => row.year && row.month && (row.rent_amount || row.rent || row.market_rent)).length;
+                                                   const rentHistoryCount = csvData.filter(row => row['Year'] && row['Month'] && (row['Rent Amount'] || row.rent || row.market_rent)).length;
                          
                          return (
                            <div>

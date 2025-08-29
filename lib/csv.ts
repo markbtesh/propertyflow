@@ -22,12 +22,12 @@ export interface CSVProperty {
   unit_notes?: string;
   
   // Monthly Rent History fields
-  year?: string;
-  month?: string;
-  rent_date?: string;
-  rent_amount?: string;
-  payment_method?: string;
-  rent_notes?: string;
+  'Year'?: string;
+  'Month'?: string;
+  'Rent Date'?: string;
+  'Rent Amount'?: string;
+  'Payment Method'?: string;
+  'Rent Notes'?: string;
   
   // User's specific format fields
   property_id?: string;
@@ -87,12 +87,12 @@ export const generateCSVTemplate = (): string => {
       lease_expires: '',
       unit_notes: 'Commercial space',
       tenancy_notes: '',
-      year: '2024',
-      month: '1',
-      rent_date: '2024-01-01',
-      rent_amount: '3934',
-      payment_method: 'Bank Transfer',
-      rent_notes: 'On time payment'
+      'Year': '2024',
+      'Month': '1',
+      'Rent Date': '2024-01-01',
+      'Rent Amount': '3934',
+      'Payment Method': 'Bank Transfer',
+      'Rent Notes': 'On time payment'
     },
     {
       property_id: '405-mother-gaston-blvd',
@@ -112,12 +112,12 @@ export const generateCSVTemplate = (): string => {
       lease_expires: '',
       unit_notes: '2nd floor apartment',
       tenancy_notes: '',
-      year: '2024',
-      month: '1',
-      rent_date: '2024-01-01',
-      rent_amount: '3560',
-      payment_method: 'Check',
-      rent_notes: 'On time payment'
+      'Year': '2024',
+      'Month': '1',
+      'Rent Date': '2024-01-01',
+      'Rent Amount': '3560',
+      'Payment Method': 'Check',
+      'Rent Notes': 'On time payment'
     },
     {
       property_id: '642-flatbush-ave',
@@ -137,12 +137,12 @@ export const generateCSVTemplate = (): string => {
       lease_expires: '',
       unit_notes: 'Ground floor commercial',
       tenancy_notes: '',
-      year: '2024',
-      month: '1',
-      rent_date: '2024-01-01',
-      rent_amount: '5715',
-      payment_method: 'Cash',
-      rent_notes: 'On time payment'
+      'Year': '2024',
+      'Month': '1',
+      'Rent Date': '2024-01-01',
+      'Rent Amount': '5715',
+      'Payment Method': 'Cash',
+      'Rent Notes': 'On time payment'
     }
   ];
 
@@ -229,22 +229,22 @@ export const validateCSVData = (data: CSVProperty[]): { valid: CSVProperty[], er
       }
 
       // Validate rent history fields if present
-      if (row.year && isNaN(Number(row.year))) {
+      if (row['Year'] && isNaN(Number(row['Year']))) {
         errors.push(`Row ${rowNumber}: Year must be a number`);
         return;
       }
 
-      if (row.month && (isNaN(Number(row.month)) || Number(row.month) < 1 || Number(row.month) > 12)) {
+      if (row['Month'] && (isNaN(Number(row['Month'])) || Number(row['Month']) < 1 || Number(row['Month']) > 12)) {
         errors.push(`Row ${rowNumber}: Month must be a number between 1 and 12`);
         return;
       }
 
-      if (row.rent_amount && isNaN(Number(row.rent_amount.replace(/[$,]/g, '')))) {
+      if (row['Rent Amount'] && isNaN(Number(row['Rent Amount'].replace(/[$,]/g, '')))) {
         errors.push(`Row ${rowNumber}: Rent Amount must be a number`);
         return;
       }
 
-      if (row.rent_date && isNaN(Date.parse(row.rent_date))) {
+      if (row['Rent Date'] && isNaN(Date.parse(row['Rent Date']))) {
         errors.push(`Row ${rowNumber}: Rent Date must be a valid date`);
         return;
       }
@@ -303,22 +303,22 @@ export const validateCSVData = (data: CSVProperty[]): { valid: CSVProperty[], er
       }
 
       // Validate rent history fields if present
-      if (row.year && isNaN(Number(row.year))) {
+      if (row['Year'] && isNaN(Number(row['Year']))) {
         errors.push(`Row ${rowNumber}: Year must be a number`);
         return;
       }
 
-      if (row.month && (isNaN(Number(row.month)) || Number(row.month) < 1 || Number(row.month) > 12)) {
+      if (row['Month'] && (isNaN(Number(row['Month'])) || Number(row['Month']) < 1 || Number(row['Month']) > 12)) {
         errors.push(`Row ${rowNumber}: Month must be a number between 1 and 12`);
         return;
       }
 
-      if (row.rent_amount && isNaN(Number(row.rent_amount.replace(/[$,]/g, '')))) {
+      if (row['Rent Amount'] && isNaN(Number(row['Rent Amount'].replace(/[$,]/g, '')))) {
         errors.push(`Row ${rowNumber}: Rent Amount must be a number`);
         return;
       }
 
-      if (row.rent_date && isNaN(Date.parse(row.rent_date))) {
+      if (row['Rent Date'] && isNaN(Date.parse(row['Rent Date']))) {
         errors.push(`Row ${rowNumber}: Rent Date must be a valid date`);
         return;
       }
@@ -388,12 +388,12 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
               rent_price: unit.rent_price?.toString() || '',
               tenant_name: unit.tenant_name || '',
               unit_notes: unit.unit_notes || '',
-              year: rentRecord.year?.toString() || '',
-              month: rentRecord.month?.toString() || '',
-              rent_date: rentRecord.rent_date || '',
-              rent_amount: rentRecord.amount?.toString() || '',
-              payment_method: rentRecord.method || '',
-              rent_notes: rentRecord.notes || ''
+              'Year': rentRecord.year?.toString() || '',
+              'Month': rentRecord.month?.toString() || '',
+              'Rent Date': rentRecord.rent_date || '',
+              'Rent Amount': rentRecord.amount?.toString() || '',
+              'Payment Method': rentRecord.method || '',
+              'Rent Notes': rentRecord.notes || ''
             });
           });
         } else {
