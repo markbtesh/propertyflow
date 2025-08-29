@@ -415,12 +415,12 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
             rent_price: unit.rent_price?.toString() || '',
             tenant_name: unit.tenant_name || '',
             unit_notes: unit.unit_notes || '',
-            year: '',
-            month: '',
-            rent_date: '',
-            rent_amount: '',
-            payment_method: '',
-            rent_notes: ''
+            'Year': '',
+            'Month': '',
+            'Rent Date': '',
+            'Rent Amount': '',
+            'Payment Method': '',
+            'Rent Notes': ''
           });
         }
       });
@@ -439,12 +439,12 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
         notes: property.notes || '',
         external_id: property.external_id || '',
         image_url: property.street_view_image_url || '',
-        year: '',
-        month: '',
-        rent_date: '',
-        rent_amount: '',
-        payment_method: '',
-        rent_notes: ''
+        'Year': '',
+        'Month': '',
+        'Rent Date': '',
+        'Rent Amount': '',
+        'Payment Method': '',
+        'Rent Notes': ''
       });
     }
   });
@@ -613,16 +613,16 @@ export const processCSVForMonthlyRentHistory = async (
               }
 
               // Process rent history if available
-              if (row.year && row.month && (row.rent_amount || row.rent || row.market_rent)) {
+              if (row['Year'] && row['Month'] && (row['Rent Amount'] || row.rent || row.market_rent)) {
                 try {
                   await upsertMonthlyRentHistory({
                     unit_id: unit.id,
-                    year: parseInt(row.year),
-                    month: parseInt(row.month),
-                    rent_date: row.rent_date || null,
-                    amount: row.rent_amount || row.rent || row.market_rent ? parseFloat(cleanCurrency(row.rent_amount || row.rent || row.market_rent || '0')) : null,
-                    method: row.payment_method || 'CSV Import',
-                    notes: row.rent_notes || null,
+                    year: parseInt(row['Year']),
+                    month: parseInt(row['Month']),
+                    rent_date: row['Rent Date'] || null,
+                    amount: row['Rent Amount'] || row.rent || row.market_rent ? parseFloat(cleanCurrency(row['Rent Amount'] || row.rent || row.market_rent || '0')) : null,
+                    method: row['Payment Method'] || 'CSV Import',
+                    notes: row['Rent Notes'] || null,
                   });
                   results.rentHistoryCreated++;
                 } catch (error) {
