@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Download, FileText, CheckCircle, AlertCircle } from 'lucide-react';
-import { parseCSV, validateCSVData, generateCSVTemplate, generateRentHistoryTemplate, CSVProperty, parseAddress, cleanCurrency, processCSVForMonthlyRentHistory, exportPropertiesToCSV, exportRentHistoryToCSV } from '@/lib/csv';
+import { parseCSV, validateCSVData, generateCSVTemplate, generateRentHistoryTemplate, CSVProperty, parseAddress, cleanCurrency, processCSVForMonthlyRentHistory, exportPropertiesAndUnitsToCSV, exportRentHistoryToCSV } from '@/lib/csv';
 import { upsertProperty, upsertUnit, upsertMonthlyRentHistory, getProperties } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -111,7 +111,7 @@ export default function ImportPage() {
         return;
       }
 
-      const csvData = exportPropertiesToCSV(properties);
+      const csvData = exportPropertiesAndUnitsToCSV(properties);
       const blob = new Blob([csvData], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

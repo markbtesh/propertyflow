@@ -65,6 +65,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Properties', href: '/dashboard/properties', icon: Building2 },
+    { name: 'Data Manager', href: '/dashboard/data-manager', icon: Database },
     { name: 'Bulk Import', href: '/dashboard/import', icon: Upload },
     { name: 'Export Data', href: '/dashboard/export', icon: Download },
   ];

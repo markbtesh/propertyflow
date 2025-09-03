@@ -13,11 +13,7 @@ export const getProperties = async (userId: string) => {
     .from('properties')
     .select(`
       *,
-      units (
-        *,
-        rent_history (*),
-        monthly_rent_history (*)
-      )
+      units (*)
     `)
     // Temporarily remove user_id filter to see all properties
     // .eq('user_id', userId)
@@ -26,6 +22,21 @@ export const getProperties = async (userId: string) => {
   if (error) {
     console.error('Error fetching properties:', error);
     return [];
+  }
+
+  // Now fetch rent history separately for all units
+  if (data) {
+    for (const property of data) {
+      if (property.units) {
+        for (const unit of property.units) {
+          const { data: rentHistory } = await supabase
+            .from('monthly_rent_history')
+            .select('*')
+            .eq('unit_id', unit.id);
+          unit.monthly_rent_history = rentHistory || [];
+        }
+      }
+    }
   }
 
   console.log('Found properties:', data?.length || 0);
@@ -39,11 +50,7 @@ export const getProperty = async (propertyId: string, userId: string) => {
     .from('properties')
     .select(`
       *,
-      units (
-        *,
-        rent_history (*),
-        monthly_rent_history (*)
-      )
+      units (*)
     `)
     .eq('id', propertyId)
     // Temporarily remove user_id filter to see all properties
@@ -53,6 +60,17 @@ export const getProperty = async (propertyId: string, userId: string) => {
   if (error) {
     console.error('Error fetching property:', error);
     return null;
+  }
+
+  // Now fetch rent history separately for all units
+  if (data && data.units) {
+    for (const unit of data.units) {
+      const { data: rentHistory } = await supabase
+        .from('monthly_rent_history')
+        .select('*')
+        .eq('unit_id', unit.id);
+      unit.monthly_rent_history = rentHistory || [];
+    }
   }
 
   console.log('Found property:', data);
@@ -340,10 +358,7 @@ export const deleteMonthlyRentHistory = async (id: string) => {
 export const getUnitWithMonthlyRentHistory = async (unitId: string, year?: number) => {
   const { data, error } = await supabase
     .from('units')
-    .select(`
-      *,
-      monthly_rent_history (*)
-    `)
+    .select('*')
     .eq('id', unitId)
     .single();
 
@@ -351,6 +366,14 @@ export const getUnitWithMonthlyRentHistory = async (unitId: string, year?: numbe
     console.error('Error fetching unit with monthly rent history:', error);
     throw error;
   }
+
+  // Fetch rent history separately
+  const { data: rentHistory } = await supabase
+    .from('monthly_rent_history')
+    .select('*')
+    .eq('unit_id', unitId);
+
+  data.monthly_rent_history = rentHistory || [];
 
   // Filter by year if specified
   if (year && data.monthly_rent_history) {

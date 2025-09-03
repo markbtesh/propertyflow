@@ -67,6 +67,39 @@ export interface CSVProperty {
   'Tenancy Notes'?: string;
 }
 
+// New interface specifically for properties and units export (no rent history)
+export interface CSVPropertyUnit {
+  property_name?: string;
+  full_address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  property_type?: string;
+  square_footage?: string;
+  acquisition_price?: string;
+  acquisition_date?: string;
+  notes?: string;
+  external_id?: string;
+  image_url?: string;
+  unit_name?: string;
+  rent_price?: string;
+  tenant_name?: string;
+  unit_notes?: string;
+}
+
+// New interface specifically for rent history export
+export interface CSVRentHistory {
+  property_name?: string;
+  full_address?: string;
+  unit_name?: string;
+  'Year'?: string;
+  'Month'?: string;
+  'Rent Date'?: string;
+  'Rent Amount'?: string;
+  'Payment Method'?: string;
+  'Rent Notes'?: string;
+}
+
 export const generateCSVTemplate = (): string => {
   const template: CSVProperty[] = [
     {
@@ -452,6 +485,85 @@ export const exportPropertiesToCSV = (properties: any[]): string => {
   return Papa.unparse(csvData);
 };
 
+// New function: Export only properties and units (no rent history)
+export const exportPropertiesAndUnitsToCSV = (properties: any[]): string => {
+  const csvData: CSVPropertyUnit[] = [];
+  
+  properties.forEach(property => {
+    if (property.units && property.units.length > 0) {
+      property.units.forEach((unit: any) => {
+        const row = {
+          property_name: property.property_name,
+          full_address: property.full_address,
+          city: property.city,
+          state: property.state,
+          zip: property.zip,
+          property_type: property.property_type,
+          square_footage: property.square_footage?.toString() || '',
+          acquisition_price: property.acquisition_price?.toString() || '',
+          acquisition_date: property.acquisition_date || '',
+          notes: property.notes || '',
+          external_id: property.external_id || '',
+          image_url: property.street_view_image_url || '',
+          unit_name: unit.unit_name,
+          rent_price: unit.rent_price?.toString() || '',
+          tenant_name: unit.tenant_name || '',
+          unit_notes: unit.unit_notes || ''
+        };
+        csvData.push(row);
+      });
+    } else {
+      // Property exists but no units
+      const row = {
+        property_name: property.property_name,
+        full_address: property.full_address,
+        city: property.city,
+        state: property.state,
+        zip: property.zip,
+        property_type: property.property_type,
+        square_footage: property.square_footage?.toString() || '',
+        acquisition_price: property.acquisition_price?.toString() || '',
+        acquisition_date: property.acquisition_date || '',
+        notes: property.notes || '',
+        external_id: property.external_id || '',
+        image_url: property.street_view_image_url || ''
+      };
+      csvData.push(row);
+    }
+  });
+
+  return Papa.unparse(csvData);
+};
+
+// New function: Export only rent history
+export const exportRentHistoryToCSV = (properties: any[]): string => {
+  const csvData: CSVRentHistory[] = [];
+  
+  properties.forEach(property => {
+    if (property.units && property.units.length > 0) {
+      property.units.forEach((unit: any) => {
+        if (unit.monthly_rent_history && unit.monthly_rent_history.length > 0) {
+          unit.monthly_rent_history.forEach((rentRecord: any) => {
+            csvData.push({
+              property_name: property.property_name,
+              full_address: property.full_address,
+              unit_name: unit.unit_name,
+              'Year': rentRecord.year?.toString() || '',
+              'Month': rentRecord.month?.toString() || '',
+              'Rent Date': rentRecord.rent_date || '',
+              'Rent Amount': rentRecord.amount?.toString() || '',
+              'Payment Method': rentRecord.method || '',
+              'Rent Notes': rentRecord.notes || ''
+            });
+          });
+        }
+      });
+    }
+  });
+
+  return Papa.unparse(csvData);
+};
+
 export const generateRentHistoryTemplate = (): string => {
   const template = [
     {
@@ -501,34 +613,6 @@ export const generateRentHistoryTemplate = (): string => {
   ];
 
   return Papa.unparse(template);
-};
-
-export const exportRentHistoryToCSV = (properties: any[]): string => {
-  const csvData: any[] = [];
-  
-  properties.forEach(property => {
-    if (property.units && property.units.length > 0) {
-      property.units.forEach((unit: any) => {
-        if (unit.monthly_rent_history && unit.monthly_rent_history.length > 0) {
-          unit.monthly_rent_history.forEach((rentRecord: any) => {
-            csvData.push({
-              'Property Id': property.external_id || '',
-              'Address': property.full_address,
-              'Unit': unit.unit_name,
-              'Year': rentRecord.year?.toString() || '',
-              'Month': rentRecord.month?.toString() || '',
-              'Rent Date': rentRecord.rent_date || '',
-              'Rent Amount': rentRecord.amount?.toString() || '',
-              'Payment Method': rentRecord.method || '',
-              'Rent Notes': rentRecord.notes || ''
-            });
-          });
-        }
-      });
-    }
-  });
-
-  return Papa.unparse(csvData);
 };
 
 // New function to process CSV data and create monthly rent history

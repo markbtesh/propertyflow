@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Download, FileText, Database } from 'lucide-react';
-import { exportPropertiesToCSV } from '@/lib/csv';
+import { exportPropertiesAndUnitsToCSV } from '@/lib/csv';
 import { getProperties } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -49,7 +49,7 @@ export default function ExportPage() {
     setLoading(true);
 
     try {
-      const csvContent = exportPropertiesToCSV(properties);
+      const csvContent = exportPropertiesAndUnitsToCSV(properties);
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
