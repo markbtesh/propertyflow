@@ -521,7 +521,7 @@ export default function DataManagerPage() {
                     {expandedUnits.has(unit.id) && unit.monthly_rent_history && unit.monthly_rent_history.map((rentRecord, rentIndex) => (
                       <tr key={`${unit.id}-rent-${rentRecord.id}`} className="border-b border-gray-200 bg-gray-100">
                         <td className="p-0 border-r border-gray-200">
-                          <div className="flex items-center gap-2 p-2 ml-10">
+                          <div className="flex items-center gap-2 p-2 ml-6">
                             <span className="text-xs text-gray-500 font-medium">
                               {new Date(rentRecord.year, rentRecord.month - 1).toLocaleDateString('en-US', { month: 'short' })}
                             </span>
